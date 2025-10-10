@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Accès sécurisé</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        --primary: #004680;
+        --primary-dark: #00325b;
+        --background: rgba(255, 255, 255, 0.9);
+        --border-radius: 16px;
+        font-family: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: radial-gradient(circle at top, #0d233a, #010409 60%);
+        padding: 24px;
+      }
+
+      .card {
+        width: min(520px, 100%);
+        background: var(--background);
+        backdrop-filter: blur(12px);
+        border-radius: var(--border-radius);
+        box-shadow: 0 18px 45px rgba(0, 0, 0, 0.35);
+        padding: 32px;
+        color: #0f172a;
+      }
+
+      h1 {
+        margin: 0 0 8px;
+        font-size: clamp(1.75rem, 3vw, 2.4rem);
+        color: var(--primary);
+        text-align: center;
+      }
+
+      p.description {
+        margin: 0 0 24px;
+        text-align: center;
+        color: rgba(15, 23, 42, 0.75);
+      }
+
+      form {
+        display: grid;
+        gap: 16px;
+      }
+
+      label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 6px;
+      }
+
+      input[type="text"],
+      input[type="password"],
+      input[type="email"] {
+        width: 100%;
+        padding: 12px 14px;
+        border-radius: 10px;
+        border: 1px solid rgba(15, 23, 42, 0.18);
+        background: rgba(255, 255, 255, 0.8);
+        box-sizing: border-box;
+        font-size: 1rem;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+      }
+
+      input:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 4px rgba(0, 70, 128, 0.18);
+        outline: none;
+      }
+
+      button[type="submit"] {
+        background: var(--primary);
+        border: none;
+        border-radius: 999px;
+        color: #fff;
+        font-size: 1.05rem;
+        font-weight: 600;
+        padding: 14px 20px;
+        cursor: pointer;
+        transition: background 0.2s ease, transform 0.1s ease;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+      }
+
+      button[type="submit"]:hover {
+        background: var(--primary-dark);
+      }
+
+      button[type="submit"]:disabled {
+        cursor: not-allowed;
+        opacity: 0.55;
+        background: #8ca3b8;
+      }
+
+      .message {
+        min-height: 20px;
+        font-weight: 600;
+        text-align: center;
+      }
+
+      .message.error {
+        color: #c1121f;
+      }
+
+      .message.success {
+        color: #0f9d58;
+      }
+
+      .questions {
+        display: grid;
+        gap: 18px;
+        padding: 16px;
+        background: rgba(0, 70, 128, 0.05);
+        border-radius: 12px;
+      }
+
+      .hint {
+        font-size: 0.85rem;
+        color: rgba(15, 23, 42, 0.6);
+      }
+
+      footer {
+        margin-top: 24px;
+        font-size: 0.8rem;
+        text-align: center;
+        color: rgba(15, 23, 42, 0.65);
+      }
+
+      footer code {
+        background: rgba(15, 23, 42, 0.08);
+        padding: 2px 4px;
+        border-radius: 4px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <h1>Espace sécurisé</h1>
+      <p class="description">
+        Merci de confirmer votre identité avant de piloter le module Shelly.
+      </p>
+
+      <form id="secure-access-form" autocomplete="off">
+        <div>
+          <label for="username">Nom d'utilisateur</label>
+          <input
+            id="username"
+            name="username"
+            type="text"
+            placeholder="Identifiant"
+            required
+            autocomplete="username"
+          />
+        </div>
+
+        <div>
+          <label for="password">Mot de passe</label>
+          <input
+            id="password"
+            name="password"
+            type="password"
+            placeholder="Mot de passe"
+            required
+            autocomplete="current-password"
+          />
+        </div>
+
+        <div class="questions" aria-describedby="questions-hint">
+          <span class="hint" id="questions-hint">
+            Répondez correctement aux trois questions de sécurité.
+          </span>
+          <div>
+            <label for="question-1">Quel est le nom de votre première voiture&nbsp;?</label>
+            <input id="question-1" name="question-1" type="text" required />
+          </div>
+          <div>
+            <label for="question-2">Dans quelle ville êtes-vous né(e)&nbsp;?</label>
+            <input id="question-2" name="question-2" type="text" required />
+          </div>
+          <div>
+            <label for="question-3">Quel est le prénom de votre meilleur ami d'enfance&nbsp;?</label>
+            <input id="question-3" name="question-3" type="text" required />
+          </div>
+        </div>
+
+        <button id="trigger-button" type="submit" disabled>
+          Valider et activer le Shelly
+        </button>
+        <div class="message" id="feedback" role="status"></div>
+      </form>
+
+      <footer>
+        <p>
+          Personnalisez les identifiants et la cible API en éditant le script
+          dans ce fichier.
+        </p>
+      </footer>
+    </div>
+
+    <script>
+      const EXPECTED_USERNAME = "admin";
+      const PASSWORD_HASH = "9593a8a4e9181c176cf8b7a57ab2c3a6a6a48a0c600aa64ad8618caf90080787";
+      const SECURITY_QUESTIONS = [
+        {
+          id: "question-1",
+          answer: "Clio",
+        },
+        {
+          id: "question-2",
+          answer: "Paris",
+        },
+        {
+          id: "question-3",
+          answer: "Lucas",
+        },
+      ];
+
+      const SHELLY_ENDPOINT = "http://shelly-device-ip/relay/0?turn=on";
+      const SHELLY_HTTP_METHOD = "GET";
+      const SHELLY_HEADERS = {};
+
+      const form = document.getElementById("secure-access-form");
+      const feedback = document.getElementById("feedback");
+      const triggerButton = document.getElementById("trigger-button");
+      const inputs = Array.from(form.querySelectorAll("input"));
+
+      function normaliseAnswer(value) {
+        return value.trim().toLocaleLowerCase("fr-FR");
+      }
+
+      async function hashString(value) {
+        const encoder = new TextEncoder();
+        const data = encoder.encode(value);
+        const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+        return Array.from(new Uint8Array(hashBuffer))
+          .map((byte) => byte.toString(16).padStart(2, "0"))
+          .join("");
+      }
+
+      function updateButtonState() {
+        const allFilled = inputs.every((input) => input.value.trim().length > 0);
+        triggerButton.disabled = !allFilled;
+      }
+
+      inputs.forEach((input) => {
+        input.addEventListener("input", () => {
+          feedback.textContent = "";
+          feedback.classList.remove("error", "success");
+          updateButtonState();
+        });
+      });
+
+      async function callShelly() {
+        const response = await fetch(SHELLY_ENDPOINT, {
+          method: SHELLY_HTTP_METHOD,
+          headers: SHELLY_HEADERS,
+        });
+
+        if (!response.ok) {
+          const body = await response.text();
+          throw new Error(`Erreur Shelly (${response.status}) : ${body}`);
+        }
+
+        return response;
+      }
+
+      form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        triggerButton.disabled = true;
+        triggerButton.textContent = "Vérification en cours...";
+        feedback.textContent = "";
+        feedback.classList.remove("error", "success");
+
+        try {
+          const username = document.getElementById("username").value.trim();
+          const password = document.getElementById("password").value;
+
+          if (username !== EXPECTED_USERNAME) {
+            throw new Error("Identifiants invalides.");
+          }
+
+          const passwordHash = await hashString(password);
+          if (passwordHash !== PASSWORD_HASH) {
+            throw new Error("Identifiants invalides.");
+          }
+
+          for (const question of SECURITY_QUESTIONS) {
+            const userAnswer = normaliseAnswer(
+              document.getElementById(question.id).value,
+            );
+            if (userAnswer !== normaliseAnswer(question.answer)) {
+              throw new Error("Une ou plusieurs réponses de sécurité sont incorrectes.");
+            }
+          }
+
+          await callShelly();
+          feedback.textContent = "Commande envoyée avec succès au module Shelly.";
+          feedback.classList.add("success");
+        } catch (error) {
+          console.error(error);
+          feedback.textContent = error.message || "Une erreur est survenue.";
+          feedback.classList.add("error");
+        } finally {
+          triggerButton.textContent = "Valider et activer le Shelly";
+          updateButtonState();
+        }
+      });
+
+      updateButtonState();
+    </script>
+  </body>
+</html>
